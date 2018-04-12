@@ -28,3 +28,23 @@ for (i in 1:nrow(nbo)) {
 nbo <- nbo[ which(nbo$IDOSZAK=='hetkoznap'), ]
 nbo
 ###
+
+nbo$gross_sales <- nbo$sold+nbo$accepted+nbo$still_recommendable
+
+#10 days MA
+mav <- function(x,n=5){stats::filter(x,rep(1/n,n), sides=2)}
+salesma <- mav(nbo$gross_sales, 10)
+salesma <- na.omit(salesma)
+plot(mav(salesma))
+
+##maskepp
+nbo$NAP <- as.Date(nbo$NAP)
+
+nbo$roll10 = rollmean(nbo$gross_sales, 10, na.pad= TRUE)
+
+ggplot(data=subset(nbo, !is.na(roll10)), aes(x = NAP, y = roll10)) + 
+        geom_line(colour = "blue", size = 1.5, position = 'jitter') + 
+        theme_bw() + scale_x_date(date_breaks="months", date_labels="%b %e") + 
+        labs(title = "NBO performance - 10 days moving average", x = "Months", y = "Average daily sales",
+             caption = "based on data from source system")
+
